@@ -82,8 +82,8 @@ canvas {
     }
 
     function draw() {
-        background('#222222');
         if(frameRate() > 5) {
+            background('#222222');
             for(let i = 0; i < particles.length; i++) {
                 if(particles[i].position.x > width || particles[i].position.x < 0 || particles[i].position.y > height || particles[i].position.y < 0) {
                     particles[i].position.x = Math.random()*width;
