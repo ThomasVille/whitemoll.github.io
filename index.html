@@ -96,7 +96,7 @@ canvas {
     }
 
     function draw() {
-        if(frameRate() > 3) {
+        if(frameRate() > 15) {
             background('#222222');
             for(let i = 0; i < particles.length; i++) {
                 if(particles[i].position.x > width || particles[i].position.x < 0 || particles[i].position.y > height || particles[i].position.y < 0) {
@@ -130,7 +130,7 @@ canvas {
 
                 width *= 0.9;
                 height *= 0.9;
-                maxDistance = (width*height)/10000;
+                maxDistance = (width*height)/(minPhysicalSize*1000);
                 
                 myCanvas = createCanvas(width, height);
                 myCanvas.parent('home');
