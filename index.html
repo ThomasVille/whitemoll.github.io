@@ -1,1 +1,145 @@
-Hello everyone !
+<!DOCTYPE html>
+<html>
+<title>Thomas Ville experiments</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="/w3.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<style>
+body,h1,h2,h3,h4,h5,h6 {font-family: "Lato", sans-serif;}
+a{text-decoration: none}
+body, html {
+    height: 100%;
+    color: #777;
+    line-height: 1.8;
+    overflow: hidden;
+}
+canvas {
+    position: fixed;
+    z-index: 1;
+}
+#name {
+    position: fixed;
+    z-index: 2;
+    transition: opacity 2s linear;
+    opacity: 0;
+}
+.icon {
+    margin-left: 20px;
+}
+
+.w3-hover-opacity {cursor: pointer;}
+
+@media only screen and (max-device-width: 1024px) {
+}
+</style>
+<noscript>
+    <!-- Display the text directly when JS is not allowed-->
+    <style>
+    #name {
+        opacity: 1;
+    }
+    </style>
+</noscript>
+<body>
+
+<div class="bgimg-1 w3-display-container w3-opacity-min" id="home">
+    <span class="w3-center w3-padding-large w3-black w3-display-middle w3-xlarge w3-wide" id="name">
+        T H O M A S&nbsp;&nbsp;&nbsp;V I L L E
+        <a href="https://github.com/WhiteMoll" class="fa fa-github w3-hover-opacity icon"/>
+        <a href="https://twitter.com/VilleThomas" class="fa fa-twitter w3-hover-opacity icon"/>
+        <a href="https://www.linkedin.com/in/thomas-ville-832107a7/" class="fa fa-linkedin w3-hover-opacity icon"/>
+    </span>
+</div>
+
+<script src="./p5/p5.min.js"></script>
+<script>
+    let nbParticles = 100;
+    let particles = [];
+
+    let maxDistance = 150;
+    let width = document.body.clientWidth+2*maxDistance;
+    let height = document.body.clientHeight+2*maxDistance;
+
+    document.getElementById('name').style.opacity = 0.9;
+
+    function setup() {
+        var myCanvas = createCanvas(width, height);
+        myCanvas.parent('home');
+        myCanvas.elt.style.top = '-'+maxDistance+'px';
+        myCanvas.elt.style.left = '-'+maxDistance+'px';
+
+        for(let i = 0; i < nbParticles; i++) {
+            addParticle(particles);
+        }
+
+        frameRate(30);
+    }
+
+    function draw() {
+        background('#222222');
+        if(frameRate() > 5) {
+            for(let i = 0; i < particles.length; i++) {
+                if(particles[i].position.x > width || particles[i].position.x < 0 || particles[i].position.y > height || particles[i].position.y < 0) {
+                    particles[i].position.x = Math.random()*width;
+                    particles[i].position.y = Math.random()*height;
+                } else {
+                    particles[i].position.x += particles[i].direction.x/frameRate();
+                    particles[i].position.y += particles[i].direction.y/frameRate();
+                }
+                stroke('#ffffff');
+
+                let distance = Math.sqrt(Math.pow(particles[i].position.x - mouseX, 2) + Math.pow(particles[i].position.y - mouseY, 2));
+                if(distance < maxDistance) {
+                    strokeWeight(2 - distance/(maxDistance/2));
+                    line(mouseX, mouseY, particles[i].position.x, particles[i].position.y);
+                }
+
+                for(let j = i+1, nbLines = 0; j < nbParticles && nbLines < 100; j++) {
+                    let distance = Math.sqrt(Math.pow(particles[i].position.x - particles[j].position.x, 2) + Math.pow(particles[i].position.y - particles[j].position.y, 2));
+                    if(distance < maxDistance) {
+                        strokeWeight(2 - distance/(maxDistance/2));
+                        line(particles[i].position.x, particles[i].position.y, particles[j].position.x, particles[j].position.y);
+                        nbLines++;
+                    }
+                }
+
+            }
+        }
+    }
+
+    function addParticle(particles, x, y) {
+        x = x || Math.random()*width;
+        y = y || Math.random()*height;
+
+        let direction = createVector(Math.random()-0.5, Math.random()-0.5);
+        direction.setMag(Math.random()*20+10);
+
+        particles.push({
+            position: createVector(x,y),
+            direction
+        });
+    }
+    var ticking = false;
+
+    function onScrollDebounced(position_scroll) {
+        if(position_scroll > height) {
+            noLoop();
+        }
+        if(position_scroll < height) {
+            loop();
+        }
+    }
+
+    window.addEventListener('scroll', function(e) {
+        if (!ticking) {
+                onScrollDebounced(window.scrollY);
+                ticking = false;
+        }
+        ticking = true;
+    });
+</script>
+
+</body>
+</html>
