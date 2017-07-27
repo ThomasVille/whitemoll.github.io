@@ -20,19 +20,21 @@ canvas {
     z-index: 1;
 }
 #name {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     position: fixed;
     z-index: 2;
     transition: opacity 2s linear;
     opacity: 0;
+    letter-spacing: 10px;
 }
-.icon {
-    margin-left: 20px;
+.icons {
+    margin: auto 0 auto 20px;
 }
 
 .w3-hover-opacity {cursor: pointer;}
 
-@media only screen and (max-device-width: 1024px) {
-}
 </style>
 <noscript>
     <!-- Display the text directly when JS is not allowed-->
@@ -44,13 +46,15 @@ canvas {
 </noscript>
 <body>
 
-<div class="bgimg-1 w3-display-container w3-opacity-min" id="home">
-    <span class="w3-center w3-padding-large w3-black w3-display-middle w3-xlarge w3-wide" id="name">
-        T H O M A S&nbsp;&nbsp;&nbsp;V I L L E
-        <a href="https://github.com/WhiteMoll" class="fa fa-github w3-hover-opacity icon"/>
-        <a href="https://twitter.com/VilleThomas" class="fa fa-twitter w3-hover-opacity icon"/>
-        <a href="https://www.linkedin.com/in/thomas-ville-832107a7/" class="fa fa-linkedin w3-hover-opacity icon"/>
-    </span>
+<div class="w3-display-container w3-opacity-min" id="home">
+    <div class="w3-center w3-padding-large w3-black w3-display-middle w3-xlarge w3-wide" id="name">
+        THOMAS VILLE
+        <div class="icons">
+            <a href="https://github.com/WhiteMoll" class="fa fa-github w3-hover-opacity icon"></a>
+            <a href="https://twitter.com/VilleThomas" class="fa fa-twitter w3-hover-opacity icon"></a>
+            <a href="https://www.linkedin.com/in/thomas-ville-832107a7/" class="fa fa-linkedin w3-hover-opacity"></a>
+        </div>
+    </div>
 </div>
 
 <script src="./p5/p5.min.js"></script>
