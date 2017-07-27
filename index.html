@@ -59,17 +59,22 @@ canvas {
 
 <script src="./p5/p5.min.js"></script>
 <script>
+    var myCanvas = undefined;
     let nbParticles = 100;
     let particles = [];
 
-    let maxDistance = 150;
+    let maxDistance = (document.body.clientWidth*document.body.clientHeight)/10000;
     let width = document.body.clientWidth+2*maxDistance;
     let height = document.body.clientHeight+2*maxDistance;
+    const origWidth = width;
+    const origHeight = height;
 
+    let consecutiveFPSDrops = 0;
+    
     document.getElementById('name').style.opacity = 0.9;
 
     function setup() {
-        var myCanvas = createCanvas(width, height);
+        myCanvas = createCanvas(width, height);
         myCanvas.parent('home');
         myCanvas.elt.style.top = '-'+maxDistance+'px';
         myCanvas.elt.style.left = '-'+maxDistance+'px';
@@ -78,11 +83,11 @@ canvas {
             addParticle(particles);
         }
 
-        frameRate(30);
+        frameRate(40);
     }
 
     function draw() {
-        if(frameRate() > 5) {
+        if(frameRate() > 3) {
             background('#222222');
             for(let i = 0; i < particles.length; i++) {
                 if(particles[i].position.x > width || particles[i].position.x < 0 || particles[i].position.y > height || particles[i].position.y < 0) {
@@ -100,7 +105,7 @@ canvas {
                     line(mouseX, mouseY, particles[i].position.x, particles[i].position.y);
                 }
 
-                for(let j = i+1, nbLines = 0; j < nbParticles && nbLines < 100; j++) {
+                for(let j = i+1, nbLines = 0; j < nbParticles; j++) {
                     let distance = Math.sqrt(Math.pow(particles[i].position.x - particles[j].position.x, 2) + Math.pow(particles[i].position.y - particles[j].position.y, 2));
                     if(distance < maxDistance) {
                         strokeWeight(2 - distance/(maxDistance/2));
@@ -108,7 +113,22 @@ canvas {
                         nbLines++;
                     }
                 }
+            }
+        } else {
+            consecutiveFPSDrops++;
+            if(consecutiveFPSDrops > 10) {
+                consecutiveFPSDrops = 0;
 
+                width *= 0.9;
+                height *= 0.9;
+                maxDistance = (width*height)/10000;
+                
+                myCanvas = createCanvas(width, height);
+                myCanvas.parent('home');
+                myCanvas.elt.style.top = '-'+maxDistance+'px';
+                myCanvas.elt.style.left = '-'+maxDistance+'px';
+                myCanvas.elt.style.width = origWidth+'px';
+                myCanvas.elt.style.height = origHeight+'px';
             }
         }
     }
