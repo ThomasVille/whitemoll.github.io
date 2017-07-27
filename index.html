@@ -45,7 +45,7 @@ canvas {
     </style>
 </noscript>
 <body>
-
+<div id="dpi" style="height: 1in; width: 1in; left: 100%; position: fixed; top: 100%;"></div>
 <div class="w3-display-container w3-opacity-min" id="home">
     <div class="w3-center w3-padding-large w3-black w3-display-middle w3-xlarge w3-wide" id="name">
         THOMAS VILLE
@@ -63,11 +63,20 @@ canvas {
     let nbParticles = 100;
     let particles = [];
 
-    let maxDistance = (document.body.clientWidth*document.body.clientHeight)/10000;
+    // Get physical size of the screen
+    var dpi_x = document.getElementById('dpi').offsetWidth;
+    var dpi_y = document.getElementById('dpi').offsetHeight;
+    var physicalWidth = screen.width / dpi_x;
+    var physicalHeight = screen.height / dpi_y;
+    var minPhysicalSize = physicalWidth < physicalHeight ? physicalWidth : physicalHeight;
+
+    // Max distance is screen-size dependent
+    let maxDistance = (document.body.clientWidth*document.body.clientHeight)/(minPhysicalSize*1000);
     let width = document.body.clientWidth+2*maxDistance;
     let height = document.body.clientHeight+2*maxDistance;
     const origWidth = width;
     const origHeight = height;
+
 
     let consecutiveFPSDrops = 0;
     
