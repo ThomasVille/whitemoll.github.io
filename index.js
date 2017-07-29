@@ -69,7 +69,7 @@ function setup() {
 
 function draw() {
     if(!play) return;
-    if(frameRate() > 20) {
+    if(frameRate() > 15) {
         background('rgb('+backgroundR+','+backgroundG+','+backgroundB+')');
 
         for(let i = 0; i < particles.length; i++) {
