@@ -37,10 +37,16 @@ canvas {
     margin: auto 0 auto 20px;
 }
 
-.credits {
+.credits-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     position: absolute;
     right: 10px;
     bottom: 10px;
+}
+.credits {
+    margin: auto;
 }
 .w3-hover-opacity {cursor: pointer;}
 
@@ -67,7 +73,11 @@ canvas {
 </div>
 
 
-<div class="credits"><button id="toggle-animation-btn" onclick="onToggleAnimationClick(this)" class="w3-button w3-light-grey">Animation On</button><button onclick="onTweakClick()" class="w3-button w3-light-grey">Tweak</button>Thomas Ville - Made with p5.js, p5gui and w3.css</div>
+<div class="credits-container">
+    <button id="toggle-animation-btn" onclick="onToggleAnimationClick(this)" class="w3-button w3-light-grey">Animation On</button>
+    <button onclick="onTweakClick()" class="w3-button w3-light-grey">Tweak</button>
+    <span class="credits">Thomas Ville - Made with p5.js, p5gui and w3.css</span>
+</div>
 <script src="./p5/p5.min.js"></script>
 <script src="https://cdn.rawgit.com/bit101/quicksettings/master/quicksettings.js"></script>
 <script src="https://cdn.rawgit.com/bitcraftlab/p5.gui/master/libraries/p5.gui.js"></script>
@@ -144,8 +154,6 @@ canvas {
     function draw() {
         if(!play) return;
         if(frameRate() > 20) {
-            consecutiveFPSDrops = 0;
-            consecutiveFPSAbove++;
             background('rgb('+backgroundR+','+backgroundG+','+backgroundB+')');
 
             for(let i = 0; i < particles.length; i++) {
