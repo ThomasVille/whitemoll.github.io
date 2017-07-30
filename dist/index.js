@@ -17,7 +17,11 @@ CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 var sketch = function sketch(p) {
     var myCanvas = undefined;
+    var myTree = undefined;
 
+    var lastMouseDraggedX = 0;
+    var lastMouseDraggedY = 0;
+    var lastParticleDraggedId = 0;
     var nbParticlesInit = 100;
     var particles = [];
 
@@ -45,12 +49,18 @@ var sketch = function sketch(p) {
         backgroundColor: { r: 11, g: 70, b: 80 },
         backgroundSpeed: 0.06,
         maxDistance: Math.floor(minClientSize / 4),
+        maxLinks: 100,
         reset: function reset() {
             particles = [];
             for (var i = 0; i < nbParticlesInit; i++) {
                 addParticle(particles);
             }
             Object.assign(animation, preset);
+        },
+        add10Particles: function add10Particles() {
+            for (var i = 0; i < 10; i++) {
+                addParticle(particles);
+            }
         }
     };
     var animation = Object.assign({}, preset);
@@ -71,14 +81,17 @@ var sketch = function sketch(p) {
         // Create the canvas
         myCanvas = p.createCanvas(width, height);
         myCanvas.parent('home');
-        p.frameRate(60);
+        p.frameRate(30);
 
         // Set the tweaking gui
         gui.addColor(animation, 'lineColor');
         gui.addColor(animation, 'backgroundColor');
         gui.add(animation, 'backgroundSpeed', 0, 0.1);
         gui.add(animation, 'maxDistance', 1, minClientSize);
+        gui.add(animation, 'maxLinks', 1, 500);
+        gui.add(animation, 'add10Particles');
         gui.add(animation, 'reset');
+
         // Add some particles
         for (var i = 0; i < nbParticlesInit; i++) {
             addParticle(particles);
@@ -88,28 +101,31 @@ var sketch = function sketch(p) {
     p.draw = function () {
         if (!isRunning) return;
         if (p.frameRate() > 15) {
+            // Animate background color
             animation.backgroundColor = increaseHue(animation.backgroundColor, animation.backgroundSpeed / p.frameRate());
             p.background('rgb(' + Math.floor(animation.backgroundColor.r) + ',' + Math.floor(animation.backgroundColor.g) + ',' + Math.floor(animation.backgroundColor.b) + ')');
 
             for (var i = 0; i < particles.length; i++) {
-                if (particles[i].position.x > width + animation.maxDistance || particles[i].position.x < -animation.maxDistance || particles[i].position.y > height + animation.maxDistance || particles[i].position.y < -animation.maxDistance) {
+                if (particles[i].x > width + animation.maxDistance || particles[i].x < -animation.maxDistance || particles[i].y > height + animation.maxDistance || particles[i].y < -animation.maxDistance) {
                     respawnParticle(particles[i]);
                 } else {
-                    particles[i].position.x += particles[i].direction.x / p.frameRate();
-                    particles[i].position.y += particles[i].direction.y / p.frameRate();
+                    particles[i].x += particles[i].direction.x / p.frameRate();
+                    particles[i].y += particles[i].direction.y / p.frameRate();
                 }
                 p.stroke('rgb(' + Math.floor(animation.lineColor.r) + ',' + Math.floor(animation.lineColor.g) + ',' + Math.floor(animation.lineColor.b) + ')');
 
-                var _distance = Math.sqrt(Math.pow(particles[i].position.x - p.mouseX, 2) + Math.pow(particles[i].position.y - p.mouseY, 2));
-                if (_distance < animation.maxDistance) {
-                    p.strokeWeight(2 - _distance / (animation.maxDistance / 2));
-                    p.line(p.mouseX, p.mouseY, particles[i].position.x, particles[i].position.y);
+                var dist = Math.sqrt(Math.pow(particles[i].x - p.mouseX, 2) + Math.pow(particles[i].y - p.mouseY, 2));
+                if (dist < animation.maxDistance) {
+                    p.strokeWeight(2 - dist / (animation.maxDistance / 2));
+                    p.line(p.mouseX, p.mouseY, particles[i].x, particles[i].y);
                 }
-                for (var j = i + 1; j < particles.length; j++) {
-                    var _distance2 = particles[i].position.dist(particles[j].position);
-                    if (_distance2 < animation.maxDistance) {
-                        p.strokeWeight(1 - _distance2 / (animation.maxDistance / 1));
-                        p.line(particles[i].position.x, particles[i].position.y, particles[j].position.x, particles[j].position.y);
+                // Waiting for a better optimization algorithm (failed with quadtree)
+                var candidates = particles;
+                for (var j = i + 1, nbLinks = 0; j < candidates.length && nbLinks < animation.maxLinks; j++, nbLinks++) {
+                    var _dist = distance(particles[i].x, particles[i].y, candidates[j].x, candidates[j].y);
+                    if (_dist < animation.maxDistance) {
+                        p.strokeWeight(1 - _dist / (animation.maxDistance / 1));
+                        p.line(particles[i].x, particles[i].y, candidates[j].x, candidates[j].y);
                     }
                 }
             }
@@ -131,10 +147,11 @@ var sketch = function sketch(p) {
     };
     // Add particles when clicked
     p.mouseDragged = function (t) {
-        if (t.target == myCanvas.canvas) {
-            var part = particles[Math.floor(Math.random() * particles.length)];
-            part.position.x = p.mouseX;
-            part.position.y = p.mouseY;
+        if (t.target == myCanvas.canvas && distance(p.mouseX, p.mouseY, lastMouseDraggedX, lastMouseDraggedY) > animation.maxDistance / 4) {
+            if (lastParticleDraggedId >= particles.length) lastParticleDraggedId = 0;
+            var part = particles[lastParticleDraggedId++];
+            part.x = lastMouseDraggedX = p.mouseX;
+            part.y = lastMouseDraggedY = p.mouseY;
             return false;
         }
     };
@@ -156,7 +173,8 @@ var sketch = function sketch(p) {
         direction.setMag(Math.random() * 20 + 10);
 
         particles.push({
-            position: p.createVector(x, y),
+            x: x,
+            y: y,
             direction: direction
         });
     }
@@ -170,15 +188,14 @@ var sketch = function sketch(p) {
             randY = Math.random() * height;
             allowedTries--;
         } while (allowedTries !== 0 && isConnectedToParticles(particles, animation.maxDistance, randX, randY));
-        particle.position.x = randX;
-        particle.position.y = randY;
+        particle.x = randX;
+        particle.y = randY;
     }
     // Returns true if the position is close enough to make a connection with another particle
     function isConnectedToParticles(particles, maxDistance, x, y) {
         var invisible = true;
-        var position = p.createVector(x, y);
         for (var j = 0; j < particles.length; j++) {
-            if (particles[j].position.dist(position) < maxDistance) {
+            if (distance(particles[j].x, particles[j].y, x, y) < maxDistance) {
                 invisible = false;
                 break;
             }
