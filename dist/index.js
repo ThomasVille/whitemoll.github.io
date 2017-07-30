@@ -17,15 +17,20 @@ CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 var sketch = function sketch(p) {
     var myCanvas = undefined;
-    var myTree = undefined;
 
     var lastMouseDraggedX = 0;
     var lastMouseDraggedY = 0;
     var lastParticleDraggedId = 0;
+
+    var lastPixelDensity = 1.0;
+    var fpsHistory = [0, 0, 0];
+    var currentFpsHistoryId = 0;
+
     var nbParticlesInit = 100;
     var particles = [];
 
     var isRunning = true;
+    var isGuiVisible = false;
 
     var minClientSize = document.body.clientWidth < document.body.clientHeight ? document.body.clientWidth : document.body.clientHeight;
 
@@ -50,6 +55,11 @@ var sketch = function sketch(p) {
         backgroundSpeed: 0.06,
         maxDistance: Math.floor(minClientSize / 4),
         maxLinks: 100,
+        timeFactor: 1,
+        pixelDensity: 1.0,
+        nbParticles: nbParticlesInit,
+        smoothFrameRate: 0,
+        isAdaptativeQualityEnabled: true,
         reset: function reset() {
             particles = [];
             for (var i = 0; i < nbParticlesInit; i++) {
@@ -61,23 +71,20 @@ var sketch = function sketch(p) {
             for (var i = 0; i < 10; i++) {
                 addParticle(particles);
             }
+        },
+        saveImage: function saveImage() {
+            p.saveCanvas('masterpiece', 'png');
         }
     };
-    var animation = Object.assign({}, preset);
+    var animation = {};
+    preset.reset();
 
-    var isGuiVisible = false;
-    var consecutiveFPSDrops = 0,
-        consecutiveFPSAbove = 0;
-
+    // Buttons listeners
     domNameContainer.classList.add('visible');
     domToggleAnimationBtn.onclick = onToggleAnimationClick;
     domTweakAnimationBtn.onclick = onTweakClick;
 
     p.setup = function () {
-        // Rescales to 1080p when the screen is qHD (for smartphones)
-        // Sorry for people who have UHD screens ^^
-        if (width * height > 3500000) p.pixelDensity(0.75);
-
         // Create the canvas
         myCanvas = p.createCanvas(width, height);
         myCanvas.parent('home');
@@ -89,59 +96,69 @@ var sketch = function sketch(p) {
         gui.add(animation, 'backgroundSpeed', 0, 0.1);
         gui.add(animation, 'maxDistance', 1, minClientSize);
         gui.add(animation, 'maxLinks', 1, 500);
+        gui.add(animation, 'timeFactor', 0, 4);
+        gui.add(animation, 'pixelDensity', 0, 2);
+        gui.add(animation, 'nbParticles');
+        gui.add(animation, 'smoothFrameRate');
         gui.add(animation, 'add10Particles');
+        gui.add(animation, 'isAdaptativeQualityEnabled');
         gui.add(animation, 'reset');
-
-        // Add some particles
-        for (var i = 0; i < nbParticlesInit; i++) {
-            addParticle(particles);
-        }
+        gui.add(animation, 'saveImage');
     };
 
     p.draw = function () {
-        if (!isRunning) return;
-        if (p.frameRate() > 15) {
-            // Animate background color
-            animation.backgroundColor = increaseHue(animation.backgroundColor, animation.backgroundSpeed / p.frameRate());
-            p.background('rgb(' + Math.floor(animation.backgroundColor.r) + ',' + Math.floor(animation.backgroundColor.g) + ',' + Math.floor(animation.backgroundColor.b) + ')');
+        if (!isRunning || p.frameRate() < 1 || !p.frameRate()) return;
+        if (lastPixelDensity != animation.pixelDensity) {
+            lastPixelDensity = animation.pixelDensity;
+            p.pixelDensity(animation.pixelDensity);
+        }
+        // Update the smoothed out frameRate
+        fpsHistory[currentFpsHistoryId] = p.frameRate();
+        currentFpsHistoryId = (currentFpsHistoryId + 1) % fpsHistory.length;
+        animation.smoothFrameRate = fpsHistory.reduce(function (a, b) {
+            return a + b;
+        }) / fpsHistory.length;
 
-            for (var i = 0; i < particles.length; i++) {
-                if (particles[i].x > width + animation.maxDistance || particles[i].x < -animation.maxDistance || particles[i].y > height + animation.maxDistance || particles[i].y < -animation.maxDistance) {
-                    respawnParticle(particles[i]);
-                } else {
-                    particles[i].x += particles[i].direction.x / p.frameRate();
-                    particles[i].y += particles[i].direction.y / p.frameRate();
-                }
-                p.stroke('rgb(' + Math.floor(animation.lineColor.r) + ',' + Math.floor(animation.lineColor.g) + ',' + Math.floor(animation.lineColor.b) + ')');
+        // Update the number of particles (just for the tweak panel)
+        animation.nbParticles = particles.length;
+        // Animate background color
+        animation.backgroundColor = increaseHue(animation.backgroundColor, animation.backgroundSpeed / p.frameRate());
+        p.background('rgb(' + Math.floor(animation.backgroundColor.r) + ',' + Math.floor(animation.backgroundColor.g) + ',' + Math.floor(animation.backgroundColor.b) + ')');
 
-                var dist = Math.sqrt(Math.pow(particles[i].x - p.mouseX, 2) + Math.pow(particles[i].y - p.mouseY, 2));
-                if (dist < animation.maxDistance) {
-                    p.strokeWeight(2 - dist / (animation.maxDistance / 2));
-                    p.line(p.mouseX, p.mouseY, particles[i].x, particles[i].y);
-                }
-                // Waiting for a better optimization algorithm (failed with quadtree)
-                var candidates = particles;
-                for (var j = i + 1, nbLinks = 0; j < candidates.length && nbLinks < animation.maxLinks; j++, nbLinks++) {
-                    var _dist = distance(particles[i].x, particles[i].y, candidates[j].x, candidates[j].y);
-                    if (_dist < animation.maxDistance) {
-                        p.strokeWeight(1 - _dist / (animation.maxDistance / 1));
-                        p.line(particles[i].x, particles[i].y, candidates[j].x, candidates[j].y);
-                    }
+        for (var i = 0; i < particles.length; i++) {
+            if (isParticleOutsideWorld(particles[i])) {
+                respawnParticle(particles[i]);
+            } else {
+                particles[i].x += animation.timeFactor * particles[i].direction.x / p.frameRate();
+                particles[i].y += animation.timeFactor * particles[i].direction.y / p.frameRate();
+            }
+            p.stroke('rgb(' + Math.floor(animation.lineColor.r) + ',' + Math.floor(animation.lineColor.g) + ',' + Math.floor(animation.lineColor.b) + ')');
+
+            var dist = Math.sqrt(Math.pow(particles[i].x - p.mouseX, 2) + Math.pow(particles[i].y - p.mouseY, 2));
+            if (dist < animation.maxDistance) {
+                p.strokeWeight(2 - dist / (animation.maxDistance / 2));
+                p.line(p.mouseX, p.mouseY, particles[i].x, particles[i].y);
+            }
+            // Waiting for a better optimization algorithm (failed with quadtree)
+            var candidates = particles;
+            for (var j = i + 1, nbLinks = 0; j < candidates.length && nbLinks < animation.maxLinks; j++, nbLinks++) {
+                var _dist = distance(particles[i].x, particles[i].y, candidates[j].x, candidates[j].y);
+                if (_dist < animation.maxDistance) {
+                    p.strokeWeight(1 - _dist / (animation.maxDistance / 1));
+                    p.line(particles[i].x, particles[i].y, candidates[j].x, candidates[j].y);
                 }
             }
-            // Update the gui
-            for (var _i in gui.__controllers) {
-                gui.__controllers[_i].updateDisplay();
-            }
-        } else {
-            consecutiveFPSDrops++;
-            if (consecutiveFPSDrops > 20) {
-                // Second stage of optimization : stop the animation
-                domToggleAnimationBtn.click();
-                consecutiveFPSDrops = 0;
-            } else if (consecutiveFPSDrops > 10) {
-                // First stage of optimization : scale down the rendering definition
-                p.pixelDensity(0.75);
+        }
+        // Update the gui
+        for (var _i in gui.__controllers) {
+            gui.__controllers[_i].updateDisplay();
+        }
+        // Adaptative quality
+        if (animation.isAdaptativeQualityEnabled) {
+            if (animation.smoothFrameRate < 25) {
+                decreaseQuality();
+            } else if (animation.smoothFrameRate > 30) {
+                increaseQuality();
             }
         }
     };
@@ -201,6 +218,9 @@ var sketch = function sketch(p) {
             }
         }
         return !invisible;
+    }
+    function isParticleOutsideWorld(particle) {
+        return particle.x > width + animation.maxDistance || particle.x < -animation.maxDistance || particle.y > height + animation.maxDistance || particle.y < -animation.maxDistance;
     }
 
     /******* Utilities ********/
@@ -301,6 +321,23 @@ var sketch = function sketch(p) {
             this.innerHTML = 'Animation On';
         } else {
             this.innerHTML = 'Animation Off';
+        }
+    }
+
+    function decreaseQuality() {
+        if (particles.length > 50) {
+            // First decrease the number of particles
+            particles.pop();
+        } else if (animation.pixelDensity > 0.5) {
+            // Then decrease pixelDensity
+            animation.pixelDensity -= 0.01;
+        }
+    }
+    function increaseQuality() {
+        if (animation.pixelDensity < 1) {
+            animation.pixelDensity += 0.01;
+        } else if (particles.length < nbParticlesInit) {
+            addParticle(particles);
         }
     }
 };
