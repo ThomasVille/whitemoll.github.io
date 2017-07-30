@@ -4,3 +4,4 @@ _site
 .history
 .vs
 .vscode
+node_modules

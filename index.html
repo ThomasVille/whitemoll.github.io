@@ -1,87 +1,42 @@
 <!DOCTYPE html>
 <html>
-<title>Thomas Ville experiments</title>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="/w3.css">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-<style>
-body,h1,h2,h3,h4,h5,h6 {font-family: "Lato", sans-serif;}
-a{text-decoration: none}
-body, html {
-    height: 100%;
-    color: #777;
-    line-height: 1.8;
-    overflow: hidden;
-}
-canvas {
-    position: fixed;
-    z-index: 1;
-}
-#name {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    position: fixed;
-    z-index: 2;
-    transition: opacity 2s linear;
-    opacity: 0;
-    letter-spacing: 10px;
-}
+    <title>Thomas Ville experiments</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/dist/index.css">
+    <script src="/dist/polyfill.min.js"></script>
 
-#name.visible {
-    opacity: 0.9;
-}
-.icons {
-    margin: auto 0 auto 20px;
-}
-
-.credits-container {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    position: absolute;
-    right: 10px;
-    bottom: 10px;
-}
-.credits {
-    margin: auto;
-}
-.w3-hover-opacity {cursor: pointer;}
-
-</style>
-<noscript>
-    <!-- Display the text directly when JS is not allowed-->
-    <style>
-    #name {
-        opacity: 1;
-    }
-    </style>
-</noscript>
-<body>
-<div id="dpi" style="height: 1in; width: 1in; left: 100%; position: fixed; top: 100%;"></div>
-<div class="w3-display-container w3-opacity-min" id="home">
-    <div class="w3-center w3-padding-large w3-black w3-display-middle w3-xlarge w3-wide" id="name">
-        THOMAS VILLE
-        <div class="icons">
-            <a href="https://github.com/WhiteMoll" class="fa fa-github w3-hover-opacity icon"></a>
-            <a href="https://twitter.com/VilleThomas" class="fa fa-twitter w3-hover-opacity icon"></a>
-            <a href="https://www.linkedin.com/in/thomas-ville-832107a7/" class="fa fa-linkedin w3-hover-opacity"></a>
+    <noscript>
+        <!-- Display the text directly when JS is not allowed-->
+        <style>
+        #name-container {
+            opacity: 1;
+        }
+        </style>
+    </noscript>
+    <body>
+        <div id="home"></div>
+        
+        <div id="name-container">
+            THOMAS VILLE
+            <div class="icons">
+                <a href="https://github.com/WhiteMoll" class="fa fa-github icon"></a>
+                <a href="https://twitter.com/VilleThomas" class="fa fa-twitter icon"></a>
+                <a href="https://www.linkedin.com/in/thomas-ville-832107a7/" class="fa fa-linkedin icon"></a>
+            </div>
         </div>
-    </div>
-</div>
+        <div class="credits-container">
+            <button id="toggle-animation-btn" class="w3-button w3-light-grey">Animation On</button>
+            <button id="tweak-animation-btn" class="w3-button w3-light-grey">Tweak</button>
+            <span class="credits">Made with <a href="https://p5js.org/">p5.js</a>, <a href="https://github.com/bitcraftlab/p5.gui">p5.gui</a> and <a href="https://www.w3schools.com/w3css/default.asp">w3.css</a></span>
+        </div>
+        <div id="gui-container"></div>
 
+        <script src="/dist/p5.min.js"></script>
+        <script src="/dist/dat.gui.min.js"></script>
+        <script src="/dist/index.js"></script>
 
-<div class="credits-container">
-    <button id="toggle-animation-btn" onclick="onToggleAnimationClick(this)" class="w3-button w3-light-grey">Animation On</button>
-    <button onclick="onTweakClick()" class="w3-button w3-light-grey">Tweak</button>
-    <span class="credits">Made with <a href="https://p5js.org/">p5.js</a>, <a href="https://github.com/bitcraftlab/p5.gui">p5.gui</a> and <a href="https://www.w3schools.com/w3css/default.asp">w3.css</a></span>
-</div>
-<script src="./p5/p5.min.js"></script>
-<script src="https://cdn.rawgit.com/bit101/quicksettings/master/quicksettings.js"></script>
-<script src="https://cdn.rawgit.com/bitcraftlab/p5.gui/master/libraries/p5.gui.js"></script>
-<script src="./index.js"></script>
-
-</body>
+    </body>
 </html>

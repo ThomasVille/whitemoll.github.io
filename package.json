@@ -1,0 +1,30 @@
+{
+  "name": "whitemoll.github.io",
+  "version": "1.0.0",
+  "description": "My personal website on which I will put... whatever I like ^^",
+  "main": "index.js",
+  "scripts": {
+    "start": "babel src -d dist",
+    "serve": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/WhiteMoll/whitemoll.github.io.git"
+  },
+  "keywords": [
+    "p5js"
+  ],
+  "author": "Thomas Ville",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/WhiteMoll/whitemoll.github.io/issues"
+  },
+  "homepage": "https://github.com/WhiteMoll/whitemoll.github.io#readme",
+  "devDependencies": {
+    "babel-cli": "^6.24.1"
+  },
+  "dependencies": {
+    "babel-polyfill": "^6.23.0",
+    "express": "^4.13.3"
+  }
+}
