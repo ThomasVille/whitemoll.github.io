@@ -132,7 +132,9 @@ var sketch = function sketch(p) {
     // Add particles when clicked
     p.mouseDragged = function (t) {
         if (t.target == myCanvas.canvas) {
-            addParticle(particles, p.mouseX, p.mouseY);
+            var part = particles[Math.floor(Math.random() * particles.length)];
+            part.position.x = p.mouseX;
+            part.position.y = p.mouseY;
             return false;
         }
     };
