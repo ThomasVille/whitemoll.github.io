@@ -24,7 +24,8 @@ var sketch = function (p) {
     let fpsHistory = [0,0,0];
     let currentFpsHistoryId = 0;
 
-    var nbParticlesInit = 100;
+    const MOBILE_NB_PARTICLES = 1;
+    const DESKTOP_NB_PARTICLES = 100;
     var particles = [];
 
     var isRunning = true;
@@ -47,7 +48,7 @@ var sketch = function (p) {
     domGuiContainer.appendChild(gui.domElement);
     domGuiContainer.style.visibility = 'hidden';
     
-    var preset = {
+    var desktopPreset = {
         lineColor: {r: 255, g: 255, b: 255},
         backgroundColor: {r: 11, g: 70, b: 80},
         backgroundSpeed: 0.06,
@@ -55,15 +56,42 @@ var sketch = function (p) {
         maxLinks: 100,
         timeFactor: 1,
         pixelDensity: 1.0,
-        nbParticles: nbParticlesInit,
+        nbParticles: 1,
         smoothFrameRate: 0,
         isAdaptativeQualityEnabled: true,
         reset: function() {
             particles = [];
-            for(let i = 0; i < nbParticlesInit; i++) {
+            for(let i = 0; i < DESKTOP_NB_PARTICLES; i++) {
                 addParticle(particles);
             }
-            Object.assign(animation, preset);
+            Object.assign(animation, this);
+        },
+        add10Particles: function() {
+            for(let i = 0; i < 10; i++) {
+                addParticle(particles);
+            }
+        },
+        saveImage: function() {
+            p.saveCanvas('masterpiece', 'png');
+        }
+    };
+    var mobilePreset = {
+        lineColor: {r: 255, g: 255, b: 255},
+        backgroundColor: {r: 11, g: 70, b: 80},
+        backgroundSpeed: 0.06,
+        maxDistance: Math.floor(minClientSize/4),
+        maxLinks: 100,
+        timeFactor: 1,
+        pixelDensity: 1.0,
+        nbParticles: 0,
+        smoothFrameRate: 0,
+        isAdaptativeQualityEnabled: true,
+        reset: function() {
+            particles = [];
+            for(let i = 0; i < MOBILE_NB_PARTICLES; i++) {
+                addParticle(particles);
+            }
+            Object.assign(animation, this);
         },
         add10Particles: function() {
             for(let i = 0; i < 10; i++) {
@@ -75,7 +103,12 @@ var sketch = function (p) {
         }
     };
     var animation = {};
-    preset.reset();
+    // Check mobile browser
+    if(isMobileBrowser()) {
+        mobilePreset.reset();
+    } else {
+        desktopPreset.reset();
+    }
     
     // Buttons listeners
     domNameContainer.classList.add('visible');
@@ -327,7 +360,7 @@ var sketch = function (p) {
     function increaseQuality() {
         if(animation.pixelDensity < 1) {
             animation.pixelDensity += 0.01;
-        } else if(particles.length < nbParticlesInit) {
+        } else if(particles.length < DESKTOP_NB_PARTICLES) {
             addParticle(particles);
         }
     }
