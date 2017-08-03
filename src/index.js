@@ -37,7 +37,9 @@ let anim2 = new AnimBuilder();
 
 // Check mobile browser
 anim1.createSketch(NetworkAnimBuilder, desktopPreset);
-anim2.createSketch(NetworkAnimBuilder, mobilePreset, 'animation-container2', 'gui-container2');
+if(!isMobileBrowser()) {
+    anim2.createSketch(NetworkAnimBuilder, mobilePreset, 'animation-container2', 'gui-container2');
+}
 
 let domTweakAnimationBtn = document.getElementById('tweak-animation-btn');
 let domNameContainer = document.getElementById('name-container');
