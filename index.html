@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-    <title>Thomas Ville experiments</title>
+    <title>Thomas experiments</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato">
@@ -18,7 +18,12 @@
         </style>
     </noscript>
     <body>
-        <div id="home"></div>
+        <div id="animation-container">
+            <div id="gui-container"></div>
+        </div>
+        <div id="animation-container2">
+            <div id="gui-container2"></div>
+        </div>
         
         <div id="name-container">
             THOMAS VILLE
@@ -33,10 +38,11 @@
             <button id="tweak-animation-btn" class="w3-button w3-light-grey">Tweak</button>
             <span class="credits">Made with <a href="https://p5js.org/">p5.js</a>, <a href="https://github.com/bitcraftlab/p5.gui">p5.gui</a> and <a href="https://www.w3schools.com/w3css/default.asp">w3.css</a></span>
         </div>
-        <div id="gui-container"></div>
 
         <script src="/dist/p5.min.js"></script>
         <script src="/dist/dat.gui.min.js"></script>
+        <script src="/dist/anim_builder.js"></script>
+        <script src="/dist/network_anim_builder.js"></script>
         <script src="/dist/index.js"></script>
 
     </body>

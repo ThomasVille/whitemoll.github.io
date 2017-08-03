@@ -6,9 +6,19 @@ body, html {
     overflow: hidden;
     margin: 0;
 }
-canvas {
-    position: fixed;
-    z-index: 1;
+#animation-container {
+    width: 50%;
+    height: 100%;
+    position: absolute;
+    right: 0;
+    left: 0;
+}
+#animation-container2 {
+    width: 50%;
+    height: 100%;
+    position: absolute;
+    right: 0;
+    top: 0;
 }
 #name-container {
     display: flex;
@@ -38,9 +48,15 @@ canvas {
 #gui-container {
     opacity: 1;
     position: absolute;
+    top: 0;
     right: 0;
 }
-
+#gui-container2 {
+    opacity: 1;
+    position: absolute;
+    top: 0;
+    right: 0;
+}
 .icons {
     margin: auto 0 auto 20px;
 }
