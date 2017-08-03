@@ -53,9 +53,9 @@ function AnimBuilder() {
                 animation.smoothFrameRate = animation.fpsHistory.reduce((a, b) => a+b)/animation.fpsHistory.length;
                 // Adaptative quality
                 if(animation.isAdaptativeQualityEnabled) {
-                    if(animation.smoothFrameRate < 25) {
+                    if(animation.smoothFrameRate < 30) {
                         decreaseQuality();
-                    } else if (animation.smoothFrameRate > 30) {
+                    } else if (animation.smoothFrameRate > 60) {
                         increaseQuality();
                     }
                 }

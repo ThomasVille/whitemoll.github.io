@@ -7,18 +7,20 @@ body, html {
     margin: 0;
 }
 #animation-container {
-    width: 50%;
+    width: 100%;
     height: 100%;
     position: absolute;
-    right: 0;
+    top: 0;
     left: 0;
+    opacity: 1;
 }
 #animation-container2 {
-    width: 50%;
+    width: 100%;
     height: 100%;
     position: absolute;
-    right: 0;
+    left: 0;
     top: 0;
+    opacity: 0.75;
 }
 #name-container {
     display: flex;
@@ -41,21 +43,16 @@ body, html {
 #name-container.visible {
     opacity: 0.75;
 }
-#home {
-    opacity: 0.75;
+.gui-container {
+    opacity: 1;
     position: relative;
 }
-#gui-container {
-    opacity: 1;
+.guis-container {
+    display: flex;
     position: absolute;
     top: 0;
     right: 0;
-}
-#gui-container2 {
-    opacity: 1;
-    position: absolute;
-    top: 0;
-    right: 0;
+
 }
 .icons {
     margin: auto 0 auto 20px;

@@ -20,13 +20,13 @@ var desktopPreset = {
     backgroundSpeed: 0.06,
     maxLinks: 100,
     timeFactor: 1,
-    nbParticles: 100
+    nbParticles: 0
     
 };
 var mobilePreset = {
     lineColor: {r: 255, g: 255, b: 255},
     backgroundColor: {r: 11, g: 70, b: 80},
-    backgroundSpeed: 0.06,
+    backgroundSpeed: 0,
     maxLinks: 100,
     timeFactor: 1,
     nbParticles: 0
@@ -36,12 +36,9 @@ let anim1 = new AnimBuilder();
 let anim2 = new AnimBuilder();
 
 // Check mobile browser
-if(isMobileBrowser()) {
-    anim1.createSketch(NetworkAnimBuilder, mobilePreset);
-} else {
-    anim1.createSketch(NetworkAnimBuilder, desktopPreset);
-    anim2.createSketch(NetworkAnimBuilder, desktopPreset, 'animation-container2', 'gui-container2');
-}
+anim1.createSketch(NetworkAnimBuilder, desktopPreset);
+anim2.createSketch(NetworkAnimBuilder, mobilePreset, 'animation-container2', 'gui-container2');
+
 let domTweakAnimationBtn = document.getElementById('tweak-animation-btn');
 let domNameContainer = document.getElementById('name-container');
 let domToggleAnimationBtn = document.getElementById('toggle-animation-btn');
