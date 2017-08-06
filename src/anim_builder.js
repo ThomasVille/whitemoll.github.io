@@ -1,8 +1,13 @@
 function AnimBuilder() {
+    const TARGET_FPS = 50;
+    const LOW_FPS = 30;
+    const HIGH_FPS = 40;
+
     let animation = {
+        p: undefined,
         pixelDensity: 1,
         lastPixelDensity: 1,
-        fpsHistory: [0,0,0,0,0,0,0],
+        fpsHistory: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
         isAdaptativeQualityEnabled: true,
         smoothFrameRate: 0,
         currentFpsHistoryId: 0,
@@ -11,6 +16,7 @@ function AnimBuilder() {
         animationContainer: undefined,
         width: 0,
         height: 0,
+        animationConfiguration: {},
         onNewConfigurationCallback: undefined,
         // GUI stuff
         gui: undefined,
@@ -23,7 +29,9 @@ function AnimBuilder() {
     let animFunctions = {
         decreaseQuality: undefined,
         increaseQuality: undefined,
-        draw: undefined
+        draw: undefined,
+        setup: undefined,
+        windowResized: undefined
     };
     let overridenFunctions = {
         setOnNewConfigurationCallback(p) {
@@ -36,7 +44,11 @@ function AnimBuilder() {
                 // Create the canvas
                 animation.myCanvas = p.createCanvas(animation.width, animation.height);
                 animation.myCanvas.parent(animation.animationContainer);
-                p.frameRate(60);
+                p.frameRate(TARGET_FPS);
+                window.addEventListener('scroll', () => {
+                    animation.isRunning = isScrolledIntoView(animation.myCanvas.canvas);
+                });
+                animFunctions.setup();
             };
         },
         draw(p) {
@@ -53,9 +65,9 @@ function AnimBuilder() {
                 animation.smoothFrameRate = animation.fpsHistory.reduce((a, b) => a+b)/animation.fpsHistory.length;
                 // Adaptative quality
                 if(animation.isAdaptativeQualityEnabled) {
-                    if(animation.smoothFrameRate < 30) {
+                    if(animation.smoothFrameRate < LOW_FPS) {
                         decreaseQuality();
-                    } else if (animation.smoothFrameRate > 60) {
+                    } else if (animation.smoothFrameRate > HIGH_FPS) {
                         increaseQuality();
                     }
                 }
@@ -66,6 +78,14 @@ function AnimBuilder() {
                     }
                 }
                 animFunctions.draw();
+            };
+        },
+        windowResized(p) {
+            return () => {
+                p.updateDimensions();
+                if(animFunctions.windowResized) {
+                    animFunctions.windowResized();
+                }
             };
         },
         getCanvas() {
@@ -83,8 +103,12 @@ function AnimBuilder() {
                 return animation.height;
             };
         },
-        updateDimensions() {
-            return this.updateDimensions;
+        updateDimensions(p) {
+            return () => {
+                animation.width = animation.animationContainer.clientWidth;
+                animation.height = animation.animationContainer.clientHeight;
+                animation.p.resizeCanvas(animation.width, animation.height);
+            };
         },
         toggleAnimation() {
             return this.toggleAnimation;
@@ -105,17 +129,24 @@ function AnimBuilder() {
             // First let the user code decrease quality
             if(animation.pixelDensity > 0.5) {
                 // Then decrease pixelDensity
-                animation.pixelDensity -= 0.01;
+                animation.pixelDensity -= 0.1;
             }
         }
     }
     function increaseQuality() {
         if(animation.pixelDensity < 1) {
-            animation.pixelDensity += 0.01;
+            animation.pixelDensity += 0.1;
         } else {
             // Let user code increase quality back after our own deoptimization
             animFunctions.increaseQuality();
         }
+    }
+    function isScrolledIntoView(el) {
+        var elemTop = el.getBoundingClientRect().top;
+        var elemBottom = el.getBoundingClientRect().bottom;
+
+        var isVisible = (elemBottom >= 0) || (elemTop <= window.innerHeight);
+        return isVisible;
     }
     this.toggleAnimation = () => {
         animation.isRunning = !animation.isRunning;
@@ -131,13 +162,16 @@ function AnimBuilder() {
             animation.guiContainer.style.visibility = 'hidden';
         }
     }
+    this.hideGui = () => {
+        animation.isGuiVisible = false;
+        animation.guiContainer.style.visibility = 'hidden';
+    }
     this.isGuiVisible = () => {
         return animation.isGuiVisible;
     }
-
-    this.updateDimensions = () => {
-        animation.width = animation.animationContainer.clientWidth;
-        animation.height = animation.animationContainer.clientHeight;
+    this.updateConfiguration = (newConfig) => {
+        Object.assign(animation.animationConfiguration, newConfig);
+        animation.onNewConfigurationCallback(animation.animationConfiguration);
     }
 
     this.createSketch = (builder, preset = null, animationContainer = 'animation-container', guiContainer = 'gui-container') => {
@@ -159,8 +193,19 @@ function AnimBuilder() {
         } else {
             animation.guiContainer = guiContainer;
         }
+        
+        // Add GUI data if the required library is present
+        if(typeof dat !== 'undefined') {
+            animation.gui = new dat.GUI({ autoPlace: false });
+            animation.guiContainer.appendChild(animation.gui.domElement);
+            animation.guiContainer.style.visibility = 'hidden';
 
-        this.updateDimensions();
+            animation.gui.add(animation, 'pixelDensity', 0, 2);
+            animation.gui.add(animation, 'smoothFrameRate');
+            animation.gui.add(animation, 'isAdaptativeQualityEnabled');
+
+            this.toggleGui();
+        }
 
         // Create the p5 sketch
         new p5((p) => {
@@ -169,6 +214,7 @@ function AnimBuilder() {
             for(let key in overridenFunctions) {
                 p[key] = overridenFunctions[key](p);
             }
+            p.gui = animation.gui;
 
             builder(p);
 
@@ -183,21 +229,30 @@ function AnimBuilder() {
             for(let key in overridenFunctions) {
                 p[key] = overridenFunctions[key](p);
             }
+            this.updateDimensions = overridenFunctions.updateDimensions(p);
+            
+            animation.animationConfiguration = p.animationConfiguration;
+            animation.p = p;
+
+            // Set the gui event callback
+            if(animation.gui !== undefined && animation.onNewConfigurationCallback !== undefined) {
+                for (let i in animation.gui.__controllers) {
+                    animation.gui.__controllers[i].onFinishChange(function(value) {
+                        animation.onNewConfigurationCallback(animation.animationConfiguration);
+                    });
+                }
+            }
         }, animation.animationContainer);
         
         if(animation.onNewConfigurationCallback && preset) {
             animation.onNewConfigurationCallback(preset);
         }
-
-        // Add GUI data if the required library is present
-        if(dat !== undefined) {
-            animation.gui = new dat.GUI({ autoPlace: false });
-            animation.guiContainer.appendChild(animation.gui.domElement);
-            animation.guiContainer.style.visibility = 'hidden';
-
-            animation.gui.add(animation, 'pixelDensity', 0, 2);
-            animation.gui.add(animation, 'smoothFrameRate');
-            animation.gui.add(animation, 'isAdaptativeQualityEnabled');
+        for(let key in animation.animationConfiguration) {
+            if(preset.hasOwnProperty(key)) {
+                animation.animationConfiguration[key] = preset[key];
+            }
         }
+        
+        this.updateDimensions();
     }
 };

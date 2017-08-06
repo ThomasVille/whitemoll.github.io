@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 /**
 Copyright (C) 2017 Thomas Ville
@@ -23,7 +23,6 @@ var desktopPreset = {
     maxLinks: 100,
     timeFactor: 1,
     nbParticles: 0
-
 };
 var mobilePreset = {
     lineColor: { r: 255, g: 255, b: 255 },
@@ -35,24 +34,47 @@ var mobilePreset = {
 };
 
 var anim1 = new AnimBuilder();
-var anim2 = new AnimBuilder();
 
 // Check mobile browser
 anim1.createSketch(NetworkAnimBuilder, desktopPreset);
-anim2.createSketch(NetworkAnimBuilder, mobilePreset, 'animation-container2', 'gui-container2');
+anim1.hideGui();
+var texts = [{ text: "Particles", duration: 4000 }, { text: "Hi, I'm Thomas", duration: 4000 }, { text: 'Software engineer', duration: 4000 }, { text: 'Looking for', duration: 4000 }, { text: 'an internship', duration: 4000 }, { text: 'February 2018', duration: 4000 }];
+var currentTextId = 0;
+function showNextText() {
+    anim1.updateConfiguration({ text: texts[currentTextId].text });
+    if (currentTextId < texts.length - 1) {
+        setTimeout(showNextText, texts[currentTextId].duration);
+        currentTextId++;
+    }
+}
+setTimeout(launchAnimation, 4000);
+/*if(!isMobileBrowser()) {
+    anim2.createSketch(NetworkAnimBuilder, mobilePreset, 'animation-container2', 'gui-container2');
+}*/
 
 var domTweakAnimationBtn = document.getElementById('tweak-animation-btn');
-var domNameContainer = document.getElementById('name-container');
+var domReplayAnimationBtn = document.getElementById('replay-animation-btn');
 var domToggleAnimationBtn = document.getElementById('toggle-animation-btn');
+var domNameContainer = document.getElementById('name-container');
 
 // Buttons listeners
 domNameContainer.classList.add('visible');
 domToggleAnimationBtn.onclick = onToggleAnimationClick;
 domTweakAnimationBtn.onclick = onTweakClick;
+domReplayAnimationBtn.onclick = onReplayAnimationClick;
 
+function launchAnimation() {
+    currentTextId = 0;
+    showNextText();
+    var totalDuration = texts.reduce(function (a, b) {
+        return a + b.duration;
+    }, 0);
+    setTimeout(function () {
+        domReplayAnimationBtn.classList.add('visible');
+    }, totalDuration);
+}
 function onTweakClick() {
     anim1.toggleGui();
-    anim2.toggleGui();
     if (anim1.isGuiVisible()) {
         domNameContainer.classList.remove('visible');
     } else {
@@ -61,10 +83,13 @@ function onTweakClick() {
 }
 function onToggleAnimationClick() {
     anim1.toggleAnimation();
-    anim2.toggleAnimation();
     if (anim1.isAnimationRunning()) {
         this.innerHTML = 'Animation On';
     } else {
         this.innerHTML = 'Animation Off';
     }
+}
+function onReplayAnimationClick() {
+    domReplayAnimationBtn.classList.remove('visible');
+    launchAnimation();
 }

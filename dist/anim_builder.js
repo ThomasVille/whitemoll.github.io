@@ -3,10 +3,15 @@
 function AnimBuilder() {
     var _this = this;
 
+    var TARGET_FPS = 50;
+    var LOW_FPS = 30;
+    var HIGH_FPS = 40;
+
     var animation = {
+        p: undefined,
         pixelDensity: 1,
         lastPixelDensity: 1,
-        fpsHistory: [0, 0, 0, 0, 0, 0, 0],
+        fpsHistory: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         isAdaptativeQualityEnabled: true,
         smoothFrameRate: 0,
         currentFpsHistoryId: 0,
@@ -15,6 +20,7 @@ function AnimBuilder() {
         animationContainer: undefined,
         width: 0,
         height: 0,
+        animationConfiguration: {},
         onNewConfigurationCallback: undefined,
         // GUI stuff
         gui: undefined,
@@ -25,7 +31,9 @@ function AnimBuilder() {
     var animFunctions = {
         decreaseQuality: undefined,
         increaseQuality: undefined,
-        draw: undefined
+        draw: undefined,
+        setup: undefined,
+        windowResized: undefined
     };
     var overridenFunctions = {
         setOnNewConfigurationCallback: function setOnNewConfigurationCallback(p) {
@@ -38,7 +46,11 @@ function AnimBuilder() {
                 // Create the canvas
                 animation.myCanvas = p.createCanvas(animation.width, animation.height);
                 animation.myCanvas.parent(animation.animationContainer);
-                p.frameRate(60);
+                p.frameRate(TARGET_FPS);
+                window.addEventListener('scroll', function () {
+                    animation.isRunning = isScrolledIntoView(animation.myCanvas.canvas);
+                });
+                animFunctions.setup();
             };
         },
         draw: function draw(p) {
@@ -57,9 +69,9 @@ function AnimBuilder() {
                 }) / animation.fpsHistory.length;
                 // Adaptative quality
                 if (animation.isAdaptativeQualityEnabled) {
-                    if (animation.smoothFrameRate < 30) {
+                    if (animation.smoothFrameRate < LOW_FPS) {
                         decreaseQuality();
-                    } else if (animation.smoothFrameRate > 60) {
+                    } else if (animation.smoothFrameRate > HIGH_FPS) {
                         increaseQuality();
                     }
                 }
@@ -70,6 +82,14 @@ function AnimBuilder() {
                     }
                 }
                 animFunctions.draw();
+            };
+        },
+        windowResized: function windowResized(p) {
+            return function () {
+                p.updateDimensions();
+                if (animFunctions.windowResized) {
+                    animFunctions.windowResized();
+                }
             };
         },
         getCanvas: function getCanvas() {
@@ -87,8 +107,12 @@ function AnimBuilder() {
                 return animation.height;
             };
         },
-        updateDimensions: function updateDimensions() {
-            return this.updateDimensions;
+        updateDimensions: function updateDimensions(p) {
+            return function () {
+                animation.width = animation.animationContainer.clientWidth;
+                animation.height = animation.animationContainer.clientHeight;
+                animation.p.resizeCanvas(animation.width, animation.height);
+            };
         },
         toggleAnimation: function toggleAnimation() {
             return this.toggleAnimation;
@@ -109,17 +133,24 @@ function AnimBuilder() {
             // First let the user code decrease quality
             if (animation.pixelDensity > 0.5) {
                 // Then decrease pixelDensity
-                animation.pixelDensity -= 0.01;
+                animation.pixelDensity -= 0.1;
             }
         }
     }
     function increaseQuality() {
         if (animation.pixelDensity < 1) {
-            animation.pixelDensity += 0.01;
+            animation.pixelDensity += 0.1;
         } else {
             // Let user code increase quality back after our own deoptimization
             animFunctions.increaseQuality();
         }
+    }
+    function isScrolledIntoView(el) {
+        var elemTop = el.getBoundingClientRect().top;
+        var elemBottom = el.getBoundingClientRect().bottom;
+
+        var isVisible = elemBottom >= 0 || elemTop <= window.innerHeight;
+        return isVisible;
     }
     this.toggleAnimation = function () {
         animation.isRunning = !animation.isRunning;
@@ -135,13 +166,16 @@ function AnimBuilder() {
             animation.guiContainer.style.visibility = 'hidden';
         }
     };
+    this.hideGui = function () {
+        animation.isGuiVisible = false;
+        animation.guiContainer.style.visibility = 'hidden';
+    };
     this.isGuiVisible = function () {
         return animation.isGuiVisible;
     };
-
-    this.updateDimensions = function () {
-        animation.width = animation.animationContainer.clientWidth;
-        animation.height = animation.animationContainer.clientHeight;
+    this.updateConfiguration = function (newConfig) {
+        Object.assign(animation.animationConfiguration, newConfig);
+        animation.onNewConfigurationCallback(animation.animationConfiguration);
     };
 
     this.createSketch = function (builder) {
@@ -168,7 +202,18 @@ function AnimBuilder() {
             animation.guiContainer = guiContainer;
         }
 
-        _this.updateDimensions();
+        // Add GUI data if the required library is present
+        if (typeof dat !== 'undefined') {
+            animation.gui = new dat.GUI({ autoPlace: false });
+            animation.guiContainer.appendChild(animation.gui.domElement);
+            animation.guiContainer.style.visibility = 'hidden';
+
+            animation.gui.add(animation, 'pixelDensity', 0, 2);
+            animation.gui.add(animation, 'smoothFrameRate');
+            animation.gui.add(animation, 'isAdaptativeQualityEnabled');
+
+            _this.toggleGui();
+        }
 
         // Create the p5 sketch
         new p5(function (p) {
@@ -177,6 +222,7 @@ function AnimBuilder() {
             for (var key in overridenFunctions) {
                 p[key] = overridenFunctions[key](p);
             }
+            p.gui = animation.gui;
 
             builder(p);
 
@@ -191,21 +237,30 @@ function AnimBuilder() {
             for (var _key2 in overridenFunctions) {
                 p[_key2] = overridenFunctions[_key2](p);
             }
+            _this.updateDimensions = overridenFunctions.updateDimensions(p);
+
+            animation.animationConfiguration = p.animationConfiguration;
+            animation.p = p;
+
+            // Set the gui event callback
+            if (animation.gui !== undefined && animation.onNewConfigurationCallback !== undefined) {
+                for (var i in animation.gui.__controllers) {
+                    animation.gui.__controllers[i].onFinishChange(function (value) {
+                        animation.onNewConfigurationCallback(animation.animationConfiguration);
+                    });
+                }
+            }
         }, animation.animationContainer);
 
         if (animation.onNewConfigurationCallback && preset) {
             animation.onNewConfigurationCallback(preset);
         }
-
-        // Add GUI data if the required library is present
-        if (dat !== undefined) {
-            animation.gui = new dat.GUI({ autoPlace: false });
-            animation.guiContainer.appendChild(animation.gui.domElement);
-            animation.guiContainer.style.visibility = 'hidden';
-
-            animation.gui.add(animation, 'pixelDensity', 0, 2);
-            animation.gui.add(animation, 'smoothFrameRate');
-            animation.gui.add(animation, 'isAdaptativeQualityEnabled');
+        for (var key in animation.animationConfiguration) {
+            if (preset.hasOwnProperty(key)) {
+                animation.animationConfiguration[key] = preset[key];
+            }
         }
+
+        _this.updateDimensions();
     };
 };
