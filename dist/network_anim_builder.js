@@ -31,7 +31,6 @@ var NetworkAnimBuilder = function NetworkAnimBuilder(p) {
         }
         // Delete finished coroutines
         while (coroutinesIdxToDelete.length > 0) {
-            console.log('deleted coroutine', coroutinesIdxToDelete[coroutinesIdxToDelete.length - 1]);
             this.coroutines.splice(coroutinesIdxToDelete.pop(), 1);
         }
     };
@@ -112,7 +111,6 @@ var NetworkAnimBuilder = function NetworkAnimBuilder(p) {
                             case 7:
                                 fontSize -= fontStep;
 
-                                console.log('particles.length', particles.length);
                                 // Generate the text
                                 textPath = font.getPath(p.animationConfiguration.text, 0, 0, fontSize);
                                 // Retrieve the bounding box to center the text
@@ -128,9 +126,9 @@ var NetworkAnimBuilder = function NetworkAnimBuilder(p) {
                                 pointPath = [];
                                 len = 0, i = 0;
 
-                            case 18:
+                            case 17:
                                 if (!(len < totalLength)) {
-                                    _context.next = 27;
+                                    _context.next = 26;
                                     break;
                                 }
 
@@ -139,19 +137,19 @@ var NetworkAnimBuilder = function NetworkAnimBuilder(p) {
                                 pointPath.push({ x: _p.x + pathXOffset, y: _p.y + pathYOffset });
 
                                 if (!(i % 10 === 0)) {
-                                    _context.next = 24;
+                                    _context.next = 23;
                                     break;
                                 }
 
-                                _context.next = 24;
+                                _context.next = 23;
                                 return;
 
-                            case 24:
+                            case 23:
                                 len += step, i++;
-                                _context.next = 18;
+                                _context.next = 17;
                                 break;
 
-                            case 27:
+                            case 26:
 
                                 // Compute average distance between two consecutive points on the path
                                 averageInterval = 0;
@@ -165,9 +163,9 @@ var NetworkAnimBuilder = function NetworkAnimBuilder(p) {
                                 p.animationConfiguration.maxDistance = averageInterval * 1.5;
                                 _i = 0;
 
-                            case 32:
+                            case 31:
                                 if (!(_i < Math.floor(TEXT_PARTICLE_COUNT * .7))) {
-                                    _context.next = 42;
+                                    _context.next = 41;
                                     break;
                                 }
 
@@ -179,22 +177,22 @@ var NetworkAnimBuilder = function NetworkAnimBuilder(p) {
                                 particles[_i].setSpringMotion(path);
 
                                 if (!(_i % 10 === 0)) {
-                                    _context.next = 39;
+                                    _context.next = 38;
                                     break;
                                 }
 
-                                _context.next = 39;
+                                _context.next = 38;
                                 return;
 
-                            case 39:
+                            case 38:
                                 _i++;
-                                _context.next = 32;
+                                _context.next = 31;
                                 break;
 
-                            case 42:
+                            case 41:
                                 isChangingText = false;
 
-                            case 43:
+                            case 42:
                             case 'end':
                                 return _context.stop();
                         }
