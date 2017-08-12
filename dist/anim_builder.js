@@ -261,6 +261,6 @@ function AnimBuilder() {
             }
         }
 
-        _this.updateDimensions();
+        animation.p.windowResized();
     };
 };

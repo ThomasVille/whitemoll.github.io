@@ -64,6 +64,7 @@ var NetworkAnimBuilder = function NetworkAnimBuilder(p) {
         timeFactor: 1,
         nbParticles: 100,
         text: '',
+        fontPath: '/dist/SourceSansPro-Regular.otf',
         isShowingText: true
     };
 
@@ -250,13 +251,15 @@ var NetworkAnimBuilder = function NetworkAnimBuilder(p) {
     });
 
     p.setup = function () {
-        opentype.load('/dist/SourceSansPro-Regular.otf', function (err, newFont) {
-            if (err) {
-                alert('Could not load font: ' + err);
-            } else {
-                font = newFont;
-            }
-        });
+        if (opentype) {
+            opentype.load(p.animationConfiguration.fontPath, function (err, newFont) {
+                if (err) {
+                    console.error('Could not load font: ' + err);
+                } else {
+                    font = newFont;
+                }
+            });
+        }
 
         ctx = p.canvas.getContext('2d');
     };
