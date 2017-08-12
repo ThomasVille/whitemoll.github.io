@@ -17,18 +17,7 @@ CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
 var desktopPreset = {
-    lineColor: { r: 255, g: 255, b: 255 },
-    backgroundColor: { r: 11, g: 70, b: 80 },
-    backgroundSpeed: 0.06,
-    maxLinks: 100,
-    timeFactor: 1,
-    nbParticles: 0
-};
-var mobilePreset = {
-    lineColor: { r: 255, g: 255, b: 255 },
-    backgroundColor: { r: 11, g: 70, b: 80 },
-    backgroundSpeed: 0,
-    maxLinks: 100,
+    preset: 'default',
     timeFactor: 1,
     nbParticles: 0
 };
@@ -38,7 +27,7 @@ var anim1 = new AnimBuilder();
 // Check mobile browser
 anim1.createSketch(NetworkAnimBuilder, desktopPreset);
 anim1.hideGui();
-var texts = [{ text: "Particles", duration: 4000 }, { text: "Hi, I'm Thomas", duration: 4000 }, { text: 'Software engineer', duration: 4000 }, { text: 'Looking for', duration: 4000 }, { text: 'an internship', duration: 4000 }, { text: 'February 2018', duration: 4000 }];
+var texts = [{ text: "Particles", duration: 4000 }, { text: "Hi, I'm Thomas", duration: 4000 }, { text: 'Programmer', duration: 4000 }, { text: 'Looking for', duration: 4000 }, { text: 'an internship', duration: 4000 }, { text: 'February 2018', duration: 4000 }];
 var currentTextId = 0;
 function showNextText() {
     anim1.updateConfiguration({ text: texts[currentTextId].text });
@@ -77,7 +66,11 @@ function onTweakClick() {
     anim1.toggleGui();
     if (anim1.isGuiVisible()) {
         domNameContainer.classList.remove('visible');
+        setTimeout(function () {
+            return domNameContainer.style.display = 'none';
+        }, 1000);
     } else {
+        domNameContainer.style.display = 'flex';
         domNameContainer.classList.add('visible');
     }
 }

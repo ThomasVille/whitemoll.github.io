@@ -7,12 +7,16 @@ var NetworkAnimBuilder = function NetworkAnimBuilder(p) {
     var lastParticleDraggedId = 0;
 
     var particles = [];
+    var textParticles = [];
+    var textMaxDistance = 0;
+    var textMaxLineWidth = 2;
 
     var font;
     var pointPath = [];
     var textPath;
     var svg;
     var isChangingText = false;
+    var ctx;
 
     function World() {
         this.coroutines = [];
@@ -48,22 +52,52 @@ var NetworkAnimBuilder = function NetworkAnimBuilder(p) {
         saveImage: function saveImage() {
             p.saveCanvas('masterpiece', 'png');
         },
+        preset: 'default',
         lineColor: { r: 255, g: 255, b: 255 },
-        maxLineWidth: 2,
+        maxLineWidth: 1,
         hasBackground: true,
         backgroundColor: { r: 64, g: 53, b: 90 },
         backgroundSpeed: 0.06,
         isMouseDragAllowed: true,
-        maxDistance: Math.floor(minClientSize / 4),
+        maxDistance: Math.floor(minClientSize / 5),
         maxLinks: 100,
         timeFactor: 1,
         nbParticles: 100,
-        text: 'Thomas Ville',
+        text: '',
         isShowingText: true
+    };
+
+    var currentPreset = 'default';
+    var presets = {
+        default: {
+            lineColor: { r: 255, g: 255, b: 255 },
+            backgroundColor: { r: 64, g: 53, b: 90 },
+            backgroundSpeed: 0.06,
+            maxLineWidth: 1,
+            maxLinks: 100,
+            timeFactor: 1
+        },
+        dark: {
+            lineColor: { r: 255, g: 255, b: 255 },
+            backgroundColor: { r: 0, g: 0, b: 0 },
+            backgroundSpeed: 0,
+            maxLineWidth: 5,
+            maxLinks: 100,
+            timeFactor: 1
+        },
+        light: {
+            lineColor: { r: 0, g: 0, b: 0 },
+            backgroundColor: { r: 255, g: 255, b: 255 },
+            backgroundSpeed: 0,
+            maxLineWidth: 5,
+            maxLinks: 100,
+            timeFactor: 1
+        }
     };
 
     // Set the tweaking gui
     if (p.gui) {
+        p.gui.add(p.animationConfiguration, 'preset', ['default', 'dark', 'light']);
         p.gui.add(p.animationConfiguration, 'text');
         p.gui.add(p.animationConfiguration, 'isShowingText');
         p.gui.addColor(p.animationConfiguration, 'lineColor');
@@ -81,8 +115,18 @@ var NetworkAnimBuilder = function NetworkAnimBuilder(p) {
     }
 
     p.setOnNewConfigurationCallback(function (newConfig) {
+        if (currentPreset !== newConfig.preset && presets.hasOwnProperty(newConfig.preset)) {
+            currentPreset = newConfig.preset;
+
+            var preset = presets[newConfig.preset];
+            for (var key in preset) {
+                if (p.animationConfiguration.hasOwnProperty(key)) {
+                    p.animationConfiguration[key] = preset[key];
+                }
+            }
+        }
         // Set the target of each particle to be on the path of the textPath
-        if (font && p.animationConfiguration.isShowingText && !isChangingText) {
+        if (font && newConfig.isShowingText && !isChangingText) {
             isChangingText = true;
             world.addCoroutine(regeneratorRuntime.mark(function _callee() {
                 var fontSize, fontStep, bb, pathYOffset, pathXOffset, domPath, totalLength, step, len, i, _p, averageInterval, _i, path;
@@ -91,24 +135,23 @@ var NetworkAnimBuilder = function NetworkAnimBuilder(p) {
                     while (1) {
                         switch (_context.prev = _context.next) {
                             case 0:
-                                p.animationConfiguration.maxLinks = 50;
 
                                 // Determine the best font size to fit the text on the screen
                                 fontSize = 10;
                                 fontStep = 10;
 
-                            case 3:
+                            case 2:
                                 fontSize += fontStep;
-                                _context.next = 6;
+                                _context.next = 5;
                                 return;
 
-                            case 6:
+                            case 5:
                                 if (font.getAdvanceWidth(p.animationConfiguration.text, fontSize) < p.getWidth() / 2) {
-                                    _context.next = 3;
+                                    _context.next = 2;
                                     break;
                                 }
 
-                            case 7:
+                            case 6:
                                 fontSize -= fontStep;
 
                                 // Generate the text
@@ -121,14 +164,14 @@ var NetworkAnimBuilder = function NetworkAnimBuilder(p) {
 
                                 domPath = textPath.toDOMElement(4);
                                 totalLength = domPath.getTotalLength();
-                                step = totalLength / Math.floor(TEXT_PARTICLE_COUNT * .7);
+                                step = totalLength / Math.floor(TEXT_PARTICLE_COUNT);
 
                                 pointPath = [];
                                 len = 0, i = 0;
 
-                            case 17:
+                            case 16:
                                 if (!(len < totalLength)) {
-                                    _context.next = 26;
+                                    _context.next = 25;
                                     break;
                                 }
 
@@ -137,19 +180,19 @@ var NetworkAnimBuilder = function NetworkAnimBuilder(p) {
                                 pointPath.push({ x: _p.x + pathXOffset, y: _p.y + pathYOffset });
 
                                 if (!(i % 10 === 0)) {
-                                    _context.next = 23;
+                                    _context.next = 22;
                                     break;
                                 }
 
-                                _context.next = 23;
+                                _context.next = 22;
                                 return;
 
-                            case 23:
+                            case 22:
                                 len += step, i++;
-                                _context.next = 17;
+                                _context.next = 16;
                                 break;
 
-                            case 26:
+                            case 25:
 
                                 // Compute average distance between two consecutive points on the path
                                 averageInterval = 0;
@@ -160,39 +203,39 @@ var NetworkAnimBuilder = function NetworkAnimBuilder(p) {
                                 averageInterval = averageInterval / pointPath.length;
 
                                 // Adapt the maxDistance parameter to the path
-                                p.animationConfiguration.maxDistance = averageInterval * 1.5;
+                                textMaxDistance = averageInterval * 1.5;
                                 _i = 0;
 
-                            case 31:
-                                if (!(_i < Math.floor(TEXT_PARTICLE_COUNT * .7))) {
-                                    _context.next = 41;
+                            case 30:
+                                if (!(_i < Math.floor(TEXT_PARTICLE_COUNT))) {
+                                    _context.next = 40;
                                     break;
                                 }
 
-                                if (particles.length < TEXT_PARTICLE_COUNT) {
-                                    addParticle(particles);
+                                if (textParticles.length < TEXT_PARTICLE_COUNT) {
+                                    addParticle(textParticles);
                                 }
                                 path = pointPath[_i];
 
-                                particles[_i].setSpringMotion(path);
+                                textParticles[_i].setSpringMotion(path);
 
                                 if (!(_i % 10 === 0)) {
-                                    _context.next = 38;
+                                    _context.next = 37;
                                     break;
                                 }
 
-                                _context.next = 38;
+                                _context.next = 37;
                                 return;
 
-                            case 38:
+                            case 37:
                                 _i++;
-                                _context.next = 31;
+                                _context.next = 30;
                                 break;
 
-                            case 41:
+                            case 40:
                                 isChangingText = false;
 
-                            case 42:
+                            case 41:
                             case 'end':
                                 return _context.stop();
                         }
@@ -201,15 +244,8 @@ var NetworkAnimBuilder = function NetworkAnimBuilder(p) {
             }));
         }
         if (!p.animationConfiguration.isShowingText) {
-            // Free up spring particles
-            for (var i = particles.length - 1; i >= 0; i--) {
-                if (particles[i].frictionCoefficient !== 0 || particles[i].isStatic) {
-                    var direction = p.createVector(Math.random() - 0.5, Math.random() - 0.5);
-                    direction.setMag(Math.random() * 1 + 0.1);
-
-                    particles[i].setLinearMotion(direction);
-                }
-            }
+            // Delete all the particles
+            textParticles = [];
         }
     });
 
@@ -221,12 +257,14 @@ var NetworkAnimBuilder = function NetworkAnimBuilder(p) {
                 font = newFont;
             }
         });
+
+        ctx = p.canvas.getContext('2d');
     };
 
     p.draw = function () {
         world.executeCoroutines();
         // Update the number of particles (just for the tweak panel)
-        p.animationConfiguration.nbParticles = particles.length;
+        p.animationConfiguration.nbParticles = particles.length + textParticles.length;
 
         if (p.animationConfiguration.hasBackground) {
             // Animate background color
@@ -250,23 +288,46 @@ var NetworkAnimBuilder = function NetworkAnimBuilder(p) {
 
             var dist = Math.sqrt(Math.pow(particles[i].position.x - p.mouseX, 2) + Math.pow(particles[i].position.y - p.mouseY, 2));
             if (dist < p.animationConfiguration.maxDistance) {
-                p.beginShape(p.LINES);
-                p.strokeWeight(p.animationConfiguration.maxLineWidth - dist / (p.animationConfiguration.maxDistance / p.animationConfiguration.maxLineWidth));
-                p.vertex(p.mouseX, p.mouseY);
-                p.vertex(particles[i].position.x, particles[i].position.y);
-                p.endShape();
+                ctx.lineWidth = p.animationConfiguration.maxLineWidth - dist / (p.animationConfiguration.maxDistance / p.animationConfiguration.maxLineWidth);
+                ctx.beginPath();
+                ctx.moveTo(p.mouseX, p.mouseY);
+                ctx.lineTo(particles[i].position.x, particles[i].position.y);
+                ctx.stroke();
             }
             // Waiting for a better optimization algorithm (failed with quadtree)
             var candidates = particles;
             for (var j = i + 1, nbLinks = 0; j < candidates.length && nbLinks < p.animationConfiguration.maxLinks; j++, nbLinks++) {
                 var _dist = distance(particles[i].position.x, particles[i].position.y, candidates[j].position.x, candidates[j].position.y);
                 if (_dist < p.animationConfiguration.maxDistance) {
-                    p.beginShape(p.LINES);
-                    p.strokeWeight(p.animationConfiguration.maxLineWidth - _dist / (p.animationConfiguration.maxDistance / p.animationConfiguration.maxLineWidth));
-                    p.vertex(particles[i].position.x, particles[i].position.y);
-                    p.vertex(candidates[j].position.x, candidates[j].position.y);
-                    //p.line(particles[i].position.x, particles[i].position.y, candidates[j].position.x, candidates[j].position.y);
-                    p.endShape();
+                    ctx.lineWidth = p.animationConfiguration.maxLineWidth - _dist / (p.animationConfiguration.maxDistance / p.animationConfiguration.maxLineWidth);
+                    ctx.beginPath();
+                    ctx.moveTo(candidates[j].position.x, candidates[j].position.y);
+                    ctx.lineTo(particles[i].position.x, particles[i].position.y);
+                    ctx.stroke();
+                }
+            }
+        }
+        for (var _i2 = 0; _i2 < textParticles.length; _i2++) {
+            textParticles[_i2].update(1 / p.frameRate());
+
+            var _dist2 = Math.sqrt(Math.pow(textParticles[_i2].position.x - p.mouseX, 2) + Math.pow(textParticles[_i2].position.y - p.mouseY, 2));
+            if (_dist2 < textMaxDistance) {
+                ctx.lineWidth = textMaxLineWidth - _dist2 / (textMaxDistance / textMaxLineWidth);
+                ctx.beginPath();
+                ctx.moveTo(p.mouseX, p.mouseY);
+                ctx.lineTo(textParticles[_i2].position.x, textParticles[_i2].position.y);
+                ctx.stroke();
+            }
+            // Waiting for a better optimization algorithm (failed with quadtree)
+            var _candidates = textParticles;
+            for (var _j = _i2 + 1, _nbLinks = 0; _j < _candidates.length && _nbLinks < p.animationConfiguration.maxLinks; _j++, _nbLinks++) {
+                var _dist3 = distance(textParticles[_i2].position.x, textParticles[_i2].position.y, _candidates[_j].position.x, _candidates[_j].position.y);
+                if (_dist3 < textMaxDistance) {
+                    ctx.lineWidth = textMaxLineWidth - _dist3 / (textMaxDistance / textMaxLineWidth);
+                    ctx.beginPath();
+                    ctx.moveTo(_candidates[_j].position.x, _candidates[_j].position.y);
+                    ctx.lineTo(textParticles[_i2].position.x, textParticles[_i2].position.y);
+                    ctx.stroke();
                 }
             }
         }
@@ -276,14 +337,8 @@ var NetworkAnimBuilder = function NetworkAnimBuilder(p) {
         // BUG t.target is the container and not the canvas anymore
         if (p.animationConfiguration.isMouseDragAllowed && t.target == p.getCanvas().canvas && distance(p.mouseX, p.mouseY, lastMouseDraggedX, lastMouseDraggedY) > p.animationConfiguration.maxDistance / 4) {
             // Don't move particles attracted to text
-            if (p.animationConfiguration.isShowingText) {
-                if (lastParticleDraggedId >= particles.length || lastParticleDraggedId < getTextParticleCount()) {
-                    lastParticleDraggedId = getTextParticleCount();
-                }
-            } else {
-                if (lastParticleDraggedId >= particles.length) {
-                    lastParticleDraggedId = 0;
-                }
+            if (lastParticleDraggedId >= particles.length) {
+                lastParticleDraggedId = 0;
             }
             var part = particles[lastParticleDraggedId++];
             part.position.x = lastMouseDraggedX = p.mouseX;
@@ -296,20 +351,48 @@ var NetworkAnimBuilder = function NetworkAnimBuilder(p) {
     // dynamically adjust the canvas to the window
     p.windowResized = function () {
         minClientSize = p.getWidth() < p.getHeight() ? p.getWidth() : p.getHeight();
+        p.animationConfiguration.maxDistance = Math.floor(minClientSize / 5);
     };
     /******* Particles ********/
     function SpringMovement(target) {
         this.target = p.createVector(target.x, target.y);
     }
     SpringMovement.prototype.update = function (particle, delta) {
-        particle.force.x += 3 * (this.target.x - particle.position.x) - particle.velocity.x * 0.9;
-        particle.force.y += 3 * (this.target.y - particle.position.y) - particle.velocity.y * 0.9;
+        particle.force.x = 3 * (this.target.x - particle.position.x) - particle.velocity.x * 0.9;
+        particle.force.y = 3 * (this.target.y - particle.position.y) - particle.velocity.y * 0.9;
+
         // Stop the particle when arrived at target
-        if (particle.force.x * particle.force.x + particle.force.y * particle.force.y < 0.01) {
+        if (particle.force.x * particle.force.x + particle.force.y * particle.force.y < 0.1) {
             particle.setStatic();
-            return;
         }
+
+        var deltaTimeSquared = Math.pow(p.animationConfiguration.timeFactor * delta, 2);
+
+        // from the previous step
+        var frictionAir = 1 - particle.frictionCoefficient * delta,
+            velocityPrevX = particle.position.x - particle.positionPrev.x,
+            velocityPrevY = particle.position.y - particle.positionPrev.y;
+
+        // update velocity with Verlet integration
+        particle.velocity.x = velocityPrevX * frictionAir + particle.force.x / particle.mass * deltaTimeSquared;
+        particle.velocity.y = velocityPrevY * frictionAir + particle.force.y / particle.mass * deltaTimeSquared;
+
+        particle.positionPrev.x = particle.position.x;
+        particle.positionPrev.y = particle.position.y;
+        particle.position.x += particle.velocity.x;
+        particle.position.y += particle.velocity.y;
     };
+    function LinearMovement(velocity) {
+        this.velocity = velocity;
+    }
+    LinearMovement.prototype.update = function (particle, delta) {
+
+        particle.positionPrev.x = particle.position.x;
+        particle.positionPrev.y = particle.position.y;
+        particle.position.x += this.velocity.x * p.animationConfiguration.timeFactor * delta;
+        particle.position.y += this.velocity.y * p.animationConfiguration.timeFactor * delta;
+    };
+
     function Particle(position) {
         this.position = Object.assign({}, position);
         this.positionPrev = Object.assign({}, position);
@@ -317,81 +400,35 @@ var NetworkAnimBuilder = function NetworkAnimBuilder(p) {
         this.mass = 0.1;
         this.force = { x: 0, y: 0 };
         this.frictionCoefficient = 0;
-        this.forces = [];
+        this.updater = undefined;
         this.isStatic = false;
     }
     Particle.prototype.update = function (delta) {
         if (this.isStatic) return;
 
-        this.velocity.x = 0;
-        this.velocity.y = 0;
-        this.force.x = 0;
-        this.force.y = 0;
-
-        var _iteratorNormalCompletion = true;
-        var _didIteratorError = false;
-        var _iteratorError = undefined;
-
-        try {
-            for (var _iterator = this.forces[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-                var f = _step.value;
-
-                f.update(this, delta);
-            }
-        } catch (err) {
-            _didIteratorError = true;
-            _iteratorError = err;
-        } finally {
-            try {
-                if (!_iteratorNormalCompletion && _iterator.return) {
-                    _iterator.return();
-                }
-            } finally {
-                if (_didIteratorError) {
-                    throw _iteratorError;
-                }
-            }
+        if (this.updater) {
+            this.updater.update(this, delta);
         }
-
-        var deltaTimeSquared = Math.pow(p.animationConfiguration.timeFactor * delta, 2);
-
-        // from the previous step
-        var frictionAir = 1 - this.frictionCoefficient * delta,
-            velocityPrevX = this.position.x - this.positionPrev.x,
-            velocityPrevY = this.position.y - this.positionPrev.y;
-
-        // update velocity with Verlet integration
-        this.velocity.x = velocityPrevX * frictionAir + this.force.x / this.mass * deltaTimeSquared;
-        this.velocity.y = velocityPrevY * frictionAir + this.force.y / this.mass * deltaTimeSquared;
-
-        this.positionPrev.x = this.position.x;
-        this.positionPrev.y = this.position.y;
-        this.position.x += this.velocity.x;
-        this.position.y += this.velocity.y;
     };
     Particle.prototype.setLinearMotion = function (velocity) {
         this.isStatic = false;
-        this.positionPrev.x = this.position.x - velocity.x;
-        this.positionPrev.y = this.position.y - velocity.y;
-        this.frictionCoefficient = 0;
-        this.forces = [];
+        this.updater = new LinearMovement(velocity);
     };
     Particle.prototype.setSpringMotion = function (target) {
         this.isStatic = false;
         this.frictionCoefficient = 10;
-        this.forces = [];
-        this.forces.push(new SpringMovement(target));
+        this.updater = new SpringMovement(target);
     };
     Particle.prototype.setStatic = function () {
         this.isStatic = true;
-        this.forces = [];
+        this.updater = undefined;
     };
     // Add one particle to the list of particles
     function addParticle(particles, position) {
         position = position || { x: Math.random() * p.getWidth(), y: Math.random() * p.getHeight() };
 
         var direction = p.createVector(Math.random() - 0.5, Math.random() - 0.5);
-        direction.setMag(Math.random() * 1 + 0.1);
+        direction.setMag(Math.random() * 10 + 1);
 
         var newParticle = new Particle(position);
         newParticle.setLinearMotion(direction);
@@ -523,13 +560,10 @@ var NetworkAnimBuilder = function NetworkAnimBuilder(p) {
         particles[i].x += p.animationConfiguration.timeFactor * particles[i].direction.x / p.frameRate();
         particles[i].y += p.animationConfiguration.timeFactor * particles[i].direction.y / p.frameRate();
     }
-    function getTextParticleCount() {
-        return Math.floor(particles.length * 0.7);
-    }
     /******* Other events ********/
     p.decreaseQuality = function () {
-        if (!p.animationConfiguration.isShowingText && particles.length > 50) {
-            // Decrease the number of particles first if we're not showing any text (otherwise, prefer to decrease the pixel density)
+        if (particles.length > 50) {
+            // Decrease the number of particles first
             particles.pop();
             // Return true to signal that we have processed the decreaseQuality event
             return true;
