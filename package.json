@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/WhiteMoll/whitemoll.github.io#readme",
   "devDependencies": {
+    "babel-preset-env": "^1.6.1",
     "babel-cli": "^6.24.1"
   },
   "dependencies": {

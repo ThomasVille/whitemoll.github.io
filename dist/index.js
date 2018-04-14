@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 /**
 Copyright (C) 2017 Thomas Ville
@@ -27,7 +27,7 @@ var anim1 = new AnimBuilder();
 // Check mobile browser
 anim1.createSketch(NetworkAnimBuilder, desktopPreset);
 anim1.hideGui();
-var texts = [{ text: "Particles", duration: 4000 }, { text: "Hi, I'm Thomas", duration: 4000 }, { text: 'Programmer', duration: 4000 }, { text: 'Looking for', duration: 4000 }, { text: 'an internship', duration: 4000 }, { text: 'February 2018', duration: 4000 }];
+var texts = [{ text: "Hi, I'm Thomas", duration: 4000 }, { text: 'Software engineer', duration: 4000 }, { text: 'Available', duration: 4000 }, { text: 'September 2018', duration: 4000 }];
 var currentTextId = 0;
 function showNextText() {
     anim1.updateConfiguration({ text: texts[currentTextId].text });

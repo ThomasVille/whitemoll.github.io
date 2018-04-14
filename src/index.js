@@ -26,12 +26,10 @@ let anim1 = new AnimBuilder();
 anim1.createSketch(NetworkAnimBuilder, desktopPreset);
 anim1.hideGui();
 let texts = [
-    {text: "Particles", duration: 4000},
     {text: "Hi, I'm Thomas", duration: 4000},
-    {text: 'Programmer', duration: 4000},
-    {text: 'Looking for', duration: 4000},
-    {text: 'an internship', duration: 4000},
-    {text: 'February 2018', duration: 4000}
+    {text: 'Software engineer', duration: 4000},
+    {text: 'Available', duration: 4000},
+    {text: 'September 2018', duration: 4000}
 ];
 let currentTextId = 0;
 function showNextText() {

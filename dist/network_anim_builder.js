@@ -129,7 +129,7 @@ var NetworkAnimBuilder = function NetworkAnimBuilder(p) {
         // Set the target of each particle to be on the path of the textPath
         if (font && newConfig.isShowingText && !isChangingText) {
             isChangingText = true;
-            world.addCoroutine(regeneratorRuntime.mark(function _callee() {
+            world.addCoroutine( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
                 var fontSize, fontStep, bb, pathYOffset, pathXOffset, domPath, totalLength, step, len, i, _p, averageInterval, _i, path;
 
                 return regeneratorRuntime.wrap(function _callee$(_context) {
