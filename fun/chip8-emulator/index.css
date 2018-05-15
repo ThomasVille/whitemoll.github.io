@@ -1,0 +1,7 @@
+canvas {
+	display: block;
+    image-rendering: -moz-crisp-edges;
+	image-rendering: pixelated;
+	transform: scale(calc(800/64));
+	transform-origin: left top;
+}
