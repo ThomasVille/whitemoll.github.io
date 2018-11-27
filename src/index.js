@@ -28,8 +28,8 @@ anim1.hideGui();
 let texts = [
     {text: "Hi, I'm Thomas", duration: 4000},
     {text: 'Software engineer', duration: 4000},
-    {text: 'Available', duration: 4000},
-    {text: 'September 2018', duration: 4000}
+    {text: 'And I love', duration: 4000},
+    {text: 'Particles!', duration: 4000}
 ];
 let currentTextId = 0;
 function showNextText() {
